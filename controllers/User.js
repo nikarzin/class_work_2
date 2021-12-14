@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 // const jwt = require('jsonwebtoken');
-const UserModel = require('../models/user')
+const models = require('../models');
+const UserModel = models.User;
+const RoleModel = models.Role;
 // const { StatusCodes } = require('http-status-codes');
 // const { validationResult } = require('express-validator');
 // const { UserService } = require('./service');
@@ -13,14 +15,26 @@ class User {
     static AVATAR_KEY_NAME = 'avatar';
 
     static signup = async (req, res) => {
-        res.render('index', {});
+        if (req.body && Object.keys(req.body).length) {
+            console.log(req.body);
+            await UserModel.create({
+                name: req.body.name,
+                email: req.body.email,
+                password: req.body.password,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                role_id: req.body.role_id
+            })
+        }
+
+        return res.render('signup', { roles: await RoleModel.findAll() });
     }
 
     // login user
     static login = async (req, res) => {
-            // if(req.body) return res.send(req.body)
-            console.log(req.body)
-        return res.render('index', {data: req.body, layout: 'layouts/blank'});
+        // if(req.body) return res.send(req.body)
+        console.log(req.body)
+        return res.render('index', { data: req.body, layout: 'layouts/blank' });
         // let { email, password } = req.body;
 
         // let user = await UserService.getByEmail(email);
