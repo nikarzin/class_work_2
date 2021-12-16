@@ -17,14 +17,17 @@ class User {
     static signup = async (req, res) => {
         if (req.body && Object.keys(req.body).length) {
             console.log(req.body);
-            await UserModel.create({
+
+            let user = await UserModel.create({
                 name: req.body.name,
                 email: req.body.email,
-                password: req.body.password,
+                password: bcrypt.hashSync(req.body.password, 3),
                 createdAt: new Date(),
                 updatedAt: new Date(),
                 role_id: req.body.role_id
             })
+
+            return res.redirect('/')
         }
 
         return res.render('signup', { roles: await RoleModel.findAll() });
@@ -32,8 +35,26 @@ class User {
 
     // login user
     static login = async (req, res) => {
-        // if(req.body) return res.send(req.body)
-        console.log(req.body)
+        if (req.body && Object.keys(req.body).length) {
+            let user = await UserModel.findOne({ where: { email: req.body.username } });
+
+            if (user && bcrypt.compareSync(req.body.password, user.password)) {
+                req.session.user = {
+                    id: user.id,
+                    name: user.name,
+                    dob: user.dob,
+                };
+
+                console.log(req.session);
+            }
+
+            return res.redirect('/')
+        }
+
+        if (req.session.user) {           
+            return res.render('dashboard', { user: req.session.user, layout: 'layouts/main' })
+        }
+
         return res.render('index', { data: req.body, layout: 'layouts/blank' });
         // let { email, password } = req.body;
 
@@ -59,6 +80,15 @@ class User {
         //     code: StatusCodes.UNAUTHORIZED,
         //     message: "Invalid login or password"
         // })
+    }
+
+    // logout user
+    static logout = async (req, res) => {
+        req.session.destroy(function (err) {
+            if (err) throw err;
+        })
+
+        return res.redirect('/')
     }
 
     // Get all
