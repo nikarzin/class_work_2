@@ -51,7 +51,7 @@ class User {
             return res.redirect('/')
         }
 
-        if (req.session.user) {           
+        if (req.session.user) {
             return res.render('dashboard', { user: req.session.user, layout: 'layouts/main' })
         }
 
@@ -80,6 +80,17 @@ class User {
         //     code: StatusCodes.UNAUTHORIZED,
         //     message: "Invalid login or password"
         // })
+    }
+
+    // Get users list
+    static userList = async (req, res) => {
+        let users = await UserModel.findAll({include: {
+            model: RoleModel,
+            as: 'role'
+          }});
+        console.log(users);
+        let user = req.session.user;
+        return res.render('user/list', { users, user,  layout: 'layouts/main' });
     }
 
     // logout user
